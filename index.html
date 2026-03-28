@@ -1,88 +1,78 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>NoLake Company</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0f172a;
-      color: #fff;
-      overflow-x: hidden;
-    }
+<meta charset="UTF-8">
+<title>NoLake Company</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0f172a;
+    color: #fff;
+    overflow-x: hidden;
+  }
 
-    /* 粒子背景 */
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
+  /* 星星背景固定在最底层 */
+  #stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+  }
 
-    .container {
-      text-align: center;
-      padding: 80px 20px;
-    }
+  .container {
+    position: relative;
+    z-index: 1; /* 确保在星星上层 */
+    text-align: center;
+    padding: 80px 20px;
+  }
 
-    h1 {
-      font-size: 50px;
-      color: #38bdf8;
-      margin-bottom: 10px;
-      animation: fadeIn 2s ease forwards;
-    }
+  h1 {
+    font-size: 50px;
+    color: #38bdf8;
+    margin-bottom: 10px;
+    animation: fadeIn 2s ease forwards;
+  }
 
-    p.subtitle {
-      font-size: 22px;
-      color: #a5b4fc;
-      margin-bottom: 50px;
-      animation: fadeIn 2s 0.5s ease forwards;
-    }
+  p.subtitle {
+    font-size: 22px;
+    color: #a5b4fc;
+    margin-bottom: 50px;
+    animation: fadeIn 2s 0.5s ease forwards;
+  }
 
-    .card {
-      display: inline-block;
-      background: #1e293b;
-      margin: 20px;
-      padding: 25px 40px;
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-      transition: transform 0.3s;
-      animation: fadeInUp 1.5s ease forwards;
-    }
+  .card {
+    display: inline-block;
+    background: rgba(30,41,59,0.85); /* 半透明，能看到星星 */
+    margin: 20px;
+    padding: 25px 40px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    transition: transform 0.3s;
+    animation: fadeInUp 1.5s ease forwards;
+  }
 
-    .card:hover {
-      transform: translateY(-10px);
-    }
+  .card:hover { transform: translateY(-10px); }
 
-    .title {
-      font-size: 24px;
-      margin-bottom: 15px;
-      color: #38bdf8;
-    }
+  .title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #38bdf8;
+  }
 
-    @keyframes fadeIn {
-      from {opacity: 0;}
-      to {opacity: 1;}
-    }
+  @keyframes fadeIn { from {opacity:0;} to{opacity:1;} }
+  @keyframes fadeInUp { from{opacity:0; transform:translateY(50px);} to{opacity:1; transform:translateY(0);} }
 
-    @keyframes fadeInUp {
-      from {opacity: 0; transform: translateY(50px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-
-    @media(max-width: 600px){
-      .card {
-        width: 80%;
-        padding: 20px;
-      }
-      h1 { font-size: 36px; }
-    }
-  </style>
+  @media(max-width:600px){
+    .card { width: 80%; padding:20px; }
+    h1 { font-size:36px; }
+  }
+</style>
 </head>
 <body>
 
@@ -105,47 +95,52 @@
 </div>
 
 <script>
-  const canvas = document.getElementById('stars');
-  const ctx = canvas.getContext('2d');
-  let stars = [];
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
 
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+for(let i=0;i<300;i++){
+  stars.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*2+0.5,
+    d: Math.random()*0.5+0.2
+  });
+}
+
+function drawStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="white";
+  for(let s of stars){
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fill();
   }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
+}
 
-  for(let i=0;i<150;i++){
-    stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5+0.5,d:Math.random()*0.5+0.2});
-  }
-
-  function drawStars(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "white";
-    for(let s of stars){
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fill();
+function updateStars(){
+  for(let s of stars){
+    s.y += s.d;
+    if(s.y>canvas.height){
+      s.y=0;
+      s.x=Math.random()*canvas.width;
     }
   }
+}
 
-  function updateStars(){
-    for(let s of stars){
-      s.y += s.d;
-      if(s.y > canvas.height){
-        s.y = 0;
-        s.x = Math.random()*canvas.width;
-      }
-    }
-  }
-
-  function animate(){
-    drawStars();
-    updateStars();
-    requestAnimationFrame(animate);
-  }
-  animate();
+function animate(){
+  drawStars();
+  updateStars();
+  requestAnimationFrame(animate);
+}
+animate();
 </script>
 
 </body>
