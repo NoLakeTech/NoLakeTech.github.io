@@ -5,210 +5,647 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoLake Company</title>
 <style>
-  html, body {
+  :root {
+    --bg-main: #0b0d10;
+    --bg-deep: #101418;
+    --panel: rgba(255, 255, 255, 0.08);
+    --panel-border: rgba(255, 255, 255, 0.16);
+    --text-main: #f3f4f6;
+    --text-soft: #cfd4db;
+    --text-muted: #a3acb8;
+    --accent: #f8fafc;
+    --accent-soft: rgba(255, 255, 255, 0.7);
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
     margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #0f172a;
-    color: #fff;
+    min-height: 100vh;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 36%),
+      linear-gradient(180deg, #08090b 0%, #0c1014 48%, #090b0e 100%);
+    color: var(--text-main);
     overflow-x: hidden;
   }
 
-  #stars {
+  canvas.background-layer {
     position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
   }
 
-  .container {
+  #starsCanvas {
+    opacity: 1;
+  }
+
+  #networkCanvas {
+    opacity: 0;
+  }
+
+  body.network-mode #starsCanvas {
+    opacity: 0;
+  }
+
+  body.network-mode #networkCanvas {
+    opacity: 1;
+  }
+
+  .page-shell {
     position: relative;
     z-index: 1;
-    text-align: center;
-    padding: 80px 20px;
+  }
+
+  .toggle-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 3;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    background: rgba(7, 9, 12, 0.58);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+  }
+
+  .toggle-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  }
+
+  .toggle-btn.active {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 24px 80px;
+  }
+
+  .hero-panel {
+    width: min(1120px, 100%);
+    padding: 48px;
+    border-radius: 32px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--accent-soft);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   h1 {
-    font-size: 50px;
-    color: #38bdf8;
-    margin-bottom: 10px;
-    animation: fadeIn 2s ease forwards;
+    margin: 0;
+    font-size: clamp(46px, 9vw, 88px);
+    line-height: 0.96;
+    letter-spacing: -0.04em;
   }
 
-  p.subtitle {
-    font-size: 22px;
-    color: #a5b4fc;
-    margin-bottom: 50px;
-    animation: fadeIn 2s 0.5s ease forwards;
+  .subtitle {
+    max-width: 720px;
+    margin: 20px 0 0;
+    color: var(--text-soft);
+    font-size: clamp(18px, 2.2vw, 24px);
+    line-height: 1.7;
   }
 
-  .card {
-    display: inline-block;
-    background: rgba(30, 41, 59, 0.85);
-    margin: 20px;
-    padding: 25px 40px;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s, box-shadow 0.3s;
-    animation: fadeInUp 1.5s ease forwards;
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 34px;
   }
 
-  .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 14px 30px rgba(56, 189, 248, 0.25);
-  }
-
-  .title {
-    font-size: 24px;
-    margin-bottom: 15px;
-    color: #38bdf8;
-  }
-
-  .button-wrap {
-    margin-top: 18px;
-  }
-
-  .blog-button {
-    display: inline-block;
-    padding: 12px 24px;
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    padding: 14px 24px;
     border-radius: 999px;
-    background: linear-gradient(135deg, #38bdf8, #818cf8);
-    color: #fff;
     text-decoration: none;
-    font-size: 16px;
-    font-weight: 600;
-    box-shadow: 0 10px 24px rgba(56, 189, 248, 0.3);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    font-size: 15px;
+    font-weight: 700;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   }
 
-  .blog-button:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 30px rgba(129, 140, 248, 0.35);
-    opacity: 0.96;
+  .button-primary {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(214, 220, 229, 0.92));
+    color: #101317;
+    box-shadow: 0 16px 30px rgba(255, 255, 255, 0.12);
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  .button-secondary {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
   }
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(50px);
+  .button:hover {
+    transform: translateY(-3px);
+  }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 42px;
+  }
+
+  .stat-card,
+  .info-card {
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-card {
+    padding: 24px;
+  }
+
+  .stat-number {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 34px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .section {
+    width: min(1120px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 18px 0 100px;
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 42px);
+  }
+
+  .section-copy {
+    max-width: 640px;
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.8;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .info-card {
+    padding: 28px;
+    transition: transform 0.28s ease, border-color 0.28s ease;
+  }
+
+  .info-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  .card-label {
+    margin: 0 0 14px;
+    color: var(--accent-soft);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .card-title {
+    margin: 0 0 12px;
+    font-size: 26px;
+  }
+
+  .card-copy,
+  .member-list,
+  .sponsor-list {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.9;
+  }
+
+  .member-list,
+  .sponsor-list {
+    padding-left: 18px;
+  }
+
+  .member-list li,
+  .sponsor-list li {
+    margin-bottom: 8px;
+  }
+
+  .footer {
+    width: min(1120px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 0 0 48px;
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .scroll-tip {
+    margin-top: 30px;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .hero-panel {
+      padding: 32px 24px;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    .hero-stats,
+    .grid {
+      grid-template-columns: 1fr;
     }
   }
 
-  @media (max-width: 600px) {
-    .card {
-      width: 80%;
-      padding: 20px;
+  @media (max-width: 640px) {
+    .toggle-panel {
+      top: 14px;
+      right: 14px;
+      left: 14px;
+      justify-content: center;
     }
 
-    h1 {
-      font-size: 36px;
+    .hero {
+      padding-top: 110px;
     }
 
-    .blog-button {
+    .section,
+    .footer {
+      width: min(100% - 28px, 1120px);
+    }
+
+    .button {
       width: 100%;
-      box-sizing: border-box;
     }
   }
 </style>
 </head>
 <body>
+<canvas id="starsCanvas" class="background-layer"></canvas>
+<canvas id="networkCanvas" class="background-layer"></canvas>
 
-<canvas id="stars"></canvas>
-
-<div class="container">
-  <h1>🚀 NoLake Company</h1>
-  <p class="subtitle">Welcome to our official website</p>
-
-  <div class="card">
-    <div class="title">👥 成员</div>
-    <p>RootSher</p>
-    <p>岛山明</p>
+<div class="page-shell">
+  <div class="toggle-panel" aria-label="背景切换">
+    <button class="toggle-btn active" data-mode="stars" type="button">星空背景</button>
+    <button class="toggle-btn" data-mode="network" type="button">数据网背景</button>
   </div>
 
-  <div class="card">
-    <div class="title">💰 赞助商</div>
-    <p>暂无</p>
-  </div>
+  <section class="hero">
+    <div class="hero-panel">
+      <div class="eyebrow">NOLAKE COMPANY</div>
+      <h1>NoLake Company</h1>
+      <p class="subtitle">
+        NoLake Company 成立于 2024 年，目前迎来 2 周年。这里用于展示团队成员、
+        基本信息与对外内容入口，作为一个简洁清晰的官方主页。
+      </p>
 
-  <div class="card">
-    <div class="title">🤖 AI 赚钱</div>
-    <p>查看 NoLake Tech 的 AI 赚钱博客</p>
-    <div class="button-wrap">
-      <a
-        class="blog-button"
-        href="https://nolaketech.github.io/ai-money-blog/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        前往 AI 赚钱博客
-      </a>
+      <div class="hero-actions">
+        <a class="button button-primary" href="https://nolaketech.github.io/ai-money-blog/" target="_blank" rel="noopener noreferrer">前往 AI 赚钱博客</a>
+        <a class="button button-secondary" href="#about">查看公司简介</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-card">
+          <span class="stat-number">2024</span>
+          <span class="stat-label">成立时间</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">2周年</span>
+          <span class="stat-label">成长里程碑</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">3 位</span>
+          <span class="stat-label">当前成员</span>
+        </div>
+      </div>
+
+      <div class="scroll-tip">向下滚动探索更多内容</div>
     </div>
+  </section>
+
+  <section class="section" id="about">
+    <div class="section-head">
+      <h2 class="section-title">公司简介</h2>
+      <p class="section-copy">
+        NoLake Company 成立于 2024 年，现已走过 2 周年。我们希望通过这个官网页面，
+        更直接地展示团队信息、发展状态以及对外发布的主要内容。
+      </p>
+    </div>
+
+    <div class="grid">
+      <article class="info-card">
+        <p class="card-label">Profile</p>
+        <h3 class="card-title">关于我们</h3>
+        <p class="card-copy">
+          我们专注于把团队信息和内容入口整理得更清晰，让访问者可以快速了解成员构成、
+          基本介绍以及后续持续更新的方向。
+        </p>
+      </article>
+
+      <article class="info-card">
+        <p class="card-label">Members</p>
+        <h3 class="card-title">成员</h3>
+        <ul class="member-list">
+          <li>RootSher</li>
+          <li>岛山明</li>
+          <li>亡命之徒lol</li>
+        </ul>
+      </article>
+
+      <article class="info-card">
+        <p class="card-label">Support</p>
+        <h3 class="card-title">赞助商</h3>
+        <ul class="sponsor-list">
+          <li>暂无</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="projects">
+    <div class="section-head">
+      <h2 class="section-title">内容入口</h2>
+      <p class="section-copy">
+        这里保留了对外展示的重要入口，后续也可以继续补充更多项目、文章和业务介绍模块。
+      </p>
+    </div>
+
+    <div class="grid">
+      <article class="info-card">
+        <p class="card-label">AI Blog</p>
+        <h3 class="card-title">AI 赚钱博客</h3>
+        <p class="card-copy">
+          点击即可跳转到 NoLake Tech 的 AI 赚钱博客，查看相关内容与方向分享。
+        </p>
+        <div style="margin-top: 20px;">
+          <a class="button button-primary" href="https://nolaketech.github.io/ai-money-blog/" target="_blank" rel="noopener noreferrer">立即前往</a>
+        </div>
+      </article>
+
+      <article class="info-card">
+        <p class="card-label">Direction</p>
+        <h3 class="card-title">内容方向</h3>
+        <p class="card-copy">
+          当前页面以团队展示和内容入口为主，后续也可以继续补充项目介绍、动态更新、
+          发展历程以及更多对外信息。
+        </p>
+      </article>
+
+      <article class="info-card">
+        <p class="card-label">Update</p>
+        <h3 class="card-title">持续更新</h3>
+        <p class="card-copy">
+          随着团队内容逐步完善，这里还可以继续加入联系方式、作品展示、合作信息等模块，
+          让官网内容更加完整。
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <div class="footer">
+    © 2026 NoLake Company. Official website.
   </div>
 </div>
 
 <script>
-const canvas = document.getElementById("stars");
-const ctx = canvas.getContext("2d");
-let stars = [];
+  const body = document.body;
+  const toggleButtons = document.querySelectorAll(".toggle-btn");
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
+  const starCanvas = document.getElementById("starsCanvas");
+  const starCtx = starCanvas.getContext("2d");
+  const networkCanvas = document.getElementById("networkCanvas");
+  const networkCtx = networkCanvas.getContext("2d");
 
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+  const starState = {
+    items: []
+  };
 
-for (let i = 0; i < 300; i++) {
-  stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    r: Math.random() * 2 + 0.5,
-    d: Math.random() * 0.5 + 0.2
-  });
-}
+  const networkState = {
+    points: [],
+    pointer: {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      active: false
+    }
+  };
 
-function drawStars() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "white";
-  for (const s of stars) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
+  function resizeCanvas(canvas) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
-}
 
-function updateStars() {
-  for (const s of stars) {
-    s.y += s.d;
-    if (s.y > canvas.height) {
-      s.y = 0;
-      s.x = Math.random() * canvas.width;
+  function initStars() {
+    const count = Math.max(180, Math.floor((window.innerWidth * window.innerHeight) / 6000));
+    starState.items = Array.from({ length: count }, () => ({
+      x: Math.random() * starCanvas.width,
+      y: Math.random() * starCanvas.height,
+      radius: Math.random() * 1.9 + 0.4,
+      speed: Math.random() * 0.45 + 0.12,
+      alpha: Math.random() * 0.7 + 0.3
+    }));
+  }
+
+  function initNetwork() {
+    const count = Math.max(48, Math.floor((window.innerWidth * window.innerHeight) / 22000));
+    networkState.points = Array.from({ length: count }, () => ({
+      x: Math.random() * networkCanvas.width,
+      y: Math.random() * networkCanvas.height,
+      vx: (Math.random() - 0.5) * 0.36,
+      vy: (Math.random() - 0.5) * 0.36,
+      radius: Math.random() * 1.8 + 1
+    }));
+  }
+
+  function drawStars() {
+    starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+    for (const star of starState.items) {
+      star.y += star.speed;
+      if (star.y > starCanvas.height + 3) {
+        star.y = -3;
+        star.x = Math.random() * starCanvas.width;
+      }
+
+      starCtx.beginPath();
+      starCtx.fillStyle = "rgba(255,255,255," + star.alpha + ")";
+      starCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+      starCtx.fill();
     }
   }
-}
 
-function animate() {
-  drawStars();
-  updateStars();
-  requestAnimationFrame(animate);
-}
+  function drawNetwork() {
+    const { width, height } = networkCanvas;
+    networkCtx.clearRect(0, 0, width, height);
 
-animate();
+    for (const point of networkState.points) {
+      point.x += point.vx;
+      point.y += point.vy;
+
+      if (point.x < -20 || point.x > width + 20) point.vx *= -1;
+      if (point.y < -20 || point.y > height + 20) point.vy *= -1;
+    }
+
+    for (let i = 0; i < networkState.points.length; i++) {
+      const a = networkState.points[i];
+
+      networkCtx.beginPath();
+      networkCtx.fillStyle = "rgba(245, 247, 250, 0.85)";
+      networkCtx.arc(a.x, a.y, a.radius, 0, Math.PI * 2);
+      networkCtx.fill();
+
+      for (let j = i + 1; j < networkState.points.length; j++) {
+        const b = networkState.points[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 150) {
+          const alpha = 1 - distance / 150;
+          networkCtx.beginPath();
+          networkCtx.strokeStyle = "rgba(222, 226, 230, " + alpha * 0.34 + ")";
+          networkCtx.lineWidth = 1;
+          networkCtx.moveTo(a.x, a.y);
+          networkCtx.lineTo(b.x, b.y);
+          networkCtx.stroke();
+        }
+      }
+
+      if (networkState.pointer.active) {
+        const dx = a.x - networkState.pointer.x;
+        const dy = a.y - networkState.pointer.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 190) {
+          const alpha = 1 - distance / 190;
+          networkCtx.beginPath();
+          networkCtx.strokeStyle = "rgba(255, 255, 255, " + alpha * 0.55 + ")";
+          networkCtx.lineWidth = 1.2;
+          networkCtx.moveTo(a.x, a.y);
+          networkCtx.lineTo(networkState.pointer.x, networkState.pointer.y);
+          networkCtx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    drawStars();
+    drawNetwork();
+    requestAnimationFrame(animate);
+  }
+
+  function setMode(mode) {
+    const networkMode = mode === "network";
+    body.classList.toggle("network-mode", networkMode);
+
+    toggleButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.mode === mode);
+    });
+  }
+
+  function handleResize() {
+    resizeCanvas(starCanvas);
+    resizeCanvas(networkCanvas);
+    initStars();
+    initNetwork();
+  }
+
+  toggleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setMode(button.dataset.mode);
+    });
+  });
+
+  window.addEventListener("resize", handleResize);
+
+  window.addEventListener("mousemove", (event) => {
+    networkState.pointer.x = event.clientX;
+    networkState.pointer.y = event.clientY;
+    networkState.pointer.active = true;
+  });
+
+  window.addEventListener("mouseleave", () => {
+    networkState.pointer.active = false;
+  });
+
+  window.addEventListener("touchmove", (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    networkState.pointer.x = touch.clientX;
+    networkState.pointer.y = touch.clientY;
+    networkState.pointer.active = true;
+  }, { passive: true });
+
+  window.addEventListener("touchend", () => {
+    networkState.pointer.active = false;
+  });
+
+  handleResize();
+  setMode("stars");
+  animate();
 </script>
-
 </body>
 </html>
